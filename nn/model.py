@@ -33,8 +33,8 @@ class model(nn.Module):
         projected_keys = self.dec.attention.proj_layer(encoder_outputs)
         outputs, pre_outputs, alphas, hidden = self.decode(decoder_data, hidden, projected_keys, encoder_outputs)
         outputs = self.output(pre_outputs)
-
-        return outputs, alphas
+        print(len(alphas))
+        return outputs, alphas, hidden
 
 
     def encode(self, encoder_data):
@@ -69,13 +69,12 @@ class model(nn.Module):
 
             samples = list(np.random.choice(len(enc_x), int(len(enc_x) * sample_pct), replace=False).reshape(-1))
             for sent in samples:
-                outputs, _ = self.analyze_sentence(enc_x[sent], dec_x[sent])
-
+                outputs, _, _ = self.analyze_sentence(enc_x[sent], dec_x[sent])
                 loss = loss_criterion(outputs.view(-1, self.dec.n_classes), y[sent].view(-1))
                 loss.backward()
                 #self.grad_sanity_check()
                 optimizer.step()
-                optimizer.zero_grad()
+                optimizer.zero_grad() #CONVERT BACK FOR SENTENCE, BATCH LEVEL
 
             cut = self.epoch_statistics(validation_data=validation_data, train_data=(enc_x, dec_x, y), loss_criterion=loss_criterion)
             if cut >= cutoff:
@@ -108,7 +107,7 @@ class model(nn.Module):
         with torch.no_grad():
             accuracy, lossiness = [], []
             for i in range(len(x)):
-                outputs, attention_data = self.analyze_sentence(x[i], dec_x[i])
+                outputs, _, _ = self.analyze_sentence(x[i], dec_x[i])
                 acc = (outputs.topk(1, dim=-1)[1].view(-1) == dec_x[i].view(-1)).sum().item() / len(dec_x[i])
                 accuracy += [acc]
                 lossiness += [loss_criterion(outputs.view(-1, self.dec.n_classes),

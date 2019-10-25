@@ -26,7 +26,7 @@ class dec(nn.Module):
         #Layers
         self.attention = attention
         self.dropout = nn.Dropout(p=dropout_p)
-        self.gru1 = nn.GRU(self.hidden_size + context_size,
+        self.gru1 = nn.GRU(embed_size + context_size,
                            self.hidden_size,
                            bidirectional=self.bi)
         self.gru2 = nn.GRU(self.hidden_size * self.bi_mul + context_size,
@@ -87,7 +87,7 @@ class dec(nn.Module):
         #       be applied here!
         pre_output = self.relu(self.pre_output_layer(pre_output))
 
-        return output, hidden, pre_output, alphas
+        return output, hidden_states, pre_output, alphas
 
 
     def forward(self, inputs, encoder_hidden_state, projected_keys, encoder_outputs, teacher_forcing=True):
@@ -114,7 +114,4 @@ class dec(nn.Module):
 
 
     def initHidden(self):
-        if self.bi:
-            return torch.zeros(2, 1, self.hidden_size, device=self.device)
-        else:
-            return torch.zeros(1, 1, self.hidden_size, device=self.device)
+        return torch.zeros(1, 1, self.hidden_size, device=self.device)

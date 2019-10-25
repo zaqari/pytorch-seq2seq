@@ -36,7 +36,4 @@ class enc(nn.Module):
         return output, hidden
 
     def initHidden(self):
-        if self.bi:
-            return torch.zeros(2, 1, self.hidden_size, device=self.device)
-        else:
-            return torch.zeros(1, 1, self.hidden_size, device=self.device)
+        return torch.zeros(1, 1, self.hidden_size, device=self.device)
